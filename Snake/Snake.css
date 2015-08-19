@@ -1,0 +1,12 @@
+.worldBorder {border-width: 0.5rem; border-color: magenta; border-radius: 0.2rem;}
+.blockContainer {position: absolute;}
+.opaque {opacity: 0.5;}
+
+.block {position:absolute; width:1rem; height: 1rem; border-style: solid; border-color: black;border-width: 0.1rem;}
+
+.food  {background-color: blue;}
+.shead {background-color: red;}
+.stail {background-color: red;}
+.sbody {background-color: green;}
+
+.hide {display: none;}
