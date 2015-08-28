@@ -5,13 +5,10 @@ define(function (require, exports, module) {
 
     require('jquery');
     var React = require('react');
+    React.initializeTouchEvents(true);
     var Block = require("./Block.react");
 
-    var imgs = {
-        snakeHeadBlock: "",
-        snakeBodyBlock: "",
-        snakeTailBlock: ""
-    };
+    var mouse = {x: 0, y: 0};
 
     var allBlocks, snakeHeadAtDirChange=null;
 
@@ -20,12 +17,6 @@ define(function (require, exports, module) {
     };
 
     var Snake = React.createClass({displayName: "Snake",
-
-    getDefaultProps: function() {
-        return {
-            fParentPath : '/'
-        };
-    },
 
     fillAllBlocks: function() {
         allBlocks = [];
@@ -54,6 +45,7 @@ define(function (require, exports, module) {
         var randomFoodPosition = this.getRandomFoodPosition(capturedBlocks);
 
         return {
+            sSnakeSpeed     : 200,
             sSnakeDirection : 2,
             sSnakeHeadPosition : headLoc,
             sSnakeCapturedBlocks : capturedBlocks,
@@ -148,6 +140,7 @@ define(function (require, exports, module) {
             
             $(this.refs.SnakeWorld.getDOMNode()).find('.score').html(capturedBlocks.length+"/"+this.props.pBoardStartSize*this.props.pBoardStartSize);
             $(this.refs.SnakeWorld.getDOMNode()).find('.score').removeClass("hide");
+            $(this.refs.reloadButtonContainer.getDOMNode()).removeClass("hide");
             return;
         }
 
@@ -164,7 +157,27 @@ define(function (require, exports, module) {
             this.setState({ sSnakeHeadPosition: headPos, 
                             sSnakeCapturedBlocks: capturedBlocks});
         }
-        setTimeout(this.moveSnake, this.props.pSnakeSpeed);        
+        setTimeout(this.moveSnake, this.state.sSnakeSpeed);        
+    },
+
+    turnRight: function(){
+        if(this.state.sSnakeDirection != 2 && this.state.sSnakeDirection != 0)
+            this.setState({sSnakeDirection: 0});
+    },
+
+    turnLeft: function(){
+        if(this.state.sSnakeDirection != 0 && this.state.sSnakeDirection != 2)
+            this.setState({sSnakeDirection: 2}); 
+    },
+
+    turnTop: function(){
+        if(this.state.sSnakeDirection != 3 && this.state.sSnakeDirection != 1)
+            this.setState({sSnakeDirection: 1});
+    },
+
+    turnBottom: function(){
+        if(this.state.sSnakeDirection != 1 && this.state.sSnakeDirection != 3)
+            this.setState({sSnakeDirection: 3});
     },
 
     handleKeyPress: function(e){
@@ -176,34 +189,35 @@ define(function (require, exports, module) {
 
         var code = parseInt(e.which || e.keyCode);
 
-        if(code == 37){
-            if(this.state.sSnakeDirection != 0 && this.state.sSnakeDirection != 2){
-                this.setState({sSnakeDirection: 2}, this.resetChangingDirection);
-            }    
-        }
-        else if(code == 38){
-            if(this.state.sSnakeDirection != 3 && this.state.sSnakeDirection != 1){
-                this.setState({sSnakeDirection: 1}, this.resetChangingDirection);
-            }
-        }
+        if(code == 37)
+            this.turnLeft();
+
+        else if(code == 38)
+            this.turnTop();
         
-        else if(code == 39){    
-            if(this.state.sSnakeDirection != 2 && this.state.sSnakeDirection != 0){
-                this.setState({sSnakeDirection: 0}, this.resetChangingDirection);
-            }
-        }
-        else if(code == 40){
-            if(this.state.sSnakeDirection != 1 && this.state.sSnakeDirection != 3){
-                this.setState({sSnakeDirection: 3}, this.resetChangingDirection);
-            }                        
-        }
+        else if(code == 39)   
+            this.turnRight();
+
+        else if(code == 40)
+            this.turnBottom();                        
 
         snakeHeadAtDirChange = this.state.sSnakeHeadPosition;
     },
 
+    blinkFoodBlock: function() {
+
+        $(this.refs.SnakeWorld.getDOMNode()).find('.food').toggleClass("opaque");
+        setTimeout(this.blinkFoodBlock, 500);
+    },
+
     componentDidMount: function() {
 
+        this.blinkFoodBlock();
+
         window.addEventListener("keydown", this.handleKeyPress, false);
+        window.addEventListener("touchstart", this.handleTouchStart, false);
+        window.addEventListener("touchend", this.handleTouchEnd, false);
+
         this.moveSnake();
     },
 
@@ -241,24 +255,139 @@ define(function (require, exports, module) {
 
     getStyle: function() {
         
-        var delta = 0.1;
+        var size        = this.props.pBoardStartSize*this.props.pBlockSize,
+            leftOffset  = ($(window).width()-size)/2;
 
         return {
-            'borderStyle': 'solid',
-            'borderColor': 'magenta',
-            'borderRadius': '0.1rem',
-            'width': (delta+this.props.pBoardStartSize).toString() + "rem",
-            'height': (delta+this.props.pBoardStartSize).toString() + "rem"
+            'borderStyle'   : 'solid',
+            'borderColor'   : 'magenta',
+            'borderRadius'  : '1px',
+            'width'         : size.toString() + "px",
+            'height'        : size.toString() + "px",
+            'marginLeft'    : leftOffset,
+            'position'      : 'relative'
         };
+    },
+
+    getButtonStyle: function() {
+
+        var buttonSize  = 50,
+            backImgUrl  = 'res/home.png';
+
+        return {
+            'position'      : 'relative',
+            'width'         : buttonSize,
+            'height'        : buttonSize,
+            'marginLeft'    : ($(window).width()-buttonSize)/2,
+            "backgroundImage": "url("+backImgUrl+")",
+            "backgroundSize": "100% 100%",
+            "backgroundRepeat": "no-repeat"
+        };
+    },
+
+    getStartIconStyle: function() {
+
+        var iconSize = 80,
+            imgUrl   = 'res/icon/android/iconSnake.png';
+
+        return {
+            'position'      : 'relative',
+            'width'         : iconSize,
+            'height'        : iconSize,
+            "backgroundImage": "url("+imgUrl+")",
+            "backgroundSize": "100% 100%",
+            "backgroundRepeat": "no-repeat"
+        };
+    },
+
+    handleTouchStart: function(e){
+        
+        var touch = e.changedTouches[0];
+
+        mouse.x = touch.pageX;
+        mouse.y = touch.pageY;
+    },
+
+    handleTouchEnd: function(e){
+        
+        var touch = e.changedTouches[0];
+
+        var x = touch.pageX,
+            y = touch.pageY;
+
+        if(x>=mouse.x && y>=mouse.y)
+        {
+            if(x-mouse.x > y-mouse.y)
+                this.turnRight();
+            else
+                this.turnBottom();
+        }
+        else if(x<=mouse.x && y>=mouse.y)
+        {
+            if(mouse.x-x > y-mouse.y)
+                this.turnLeft();
+            else
+                this.turnBottom();
+        }
+        else if(x<=mouse.x && y<=mouse.y)
+        {
+            if(mouse.x-x > mouse.y-y)
+                this.turnLeft();
+            else
+                this.turnTop();
+        }
+        else if(x>=mouse.x && y<=mouse.y)
+        {
+            if(x-mouse.x > mouse.y-y)
+                this.turnRight();
+            else
+                this.turnTop();
+        }
+    },
+
+    handleHomeClick: function() {
+        location.reload();
+    },
+
+    setSpeed: function(e) {
+
+        if($(e.target).hasClass("slowButton"))
+            this.setState({sSnakeSpeed: 225});
+        else if($(e.target).hasClass("mediumButton"))
+            this.setState({sSnakeSpeed: 150});
+        else if($(e.target).hasClass("fastButton"))
+            this.setState({sSnakeSpeed: 75});
+
+        $(this.refs.startPage.getDOMNode()).addClass("hide");
+        $(this.refs.SnakeWorld.getDOMNode()).removeClass("hide");
     },
 
     render: function() {
         return (
-            React.createElement("div", {className: "SnakeWorld", ref: "SnakeWorld", style: this.getStyle()}, 
-                this.getBlocks(), 
-                React.createElement("div", {className: "win hide"}, "YOU WIN!"), 
-                React.createElement("div", {className: "lose hide"}, "YOU LOSE!"), 
-                React.createElement("div", {className: "score hide"})
+            React.createElement("div", null,
+                React.createElement("div", {className: "startPage", ref:"startPage"},
+                    React.createElement("div", {className: "startIconContainer"},
+                        React.createElement("img", {className: "startIcon", style: this.getStartIconStyle()}, null)
+                    ),
+                    React.createElement("div", {className: "btnContainer"},
+                        React.createElement("button", {className: "btn slowButton", onClick: this.setSpeed}, "SLOW")
+                    ),
+                    React.createElement("div", {className: "btnContainer"},
+                        React.createElement("button", {className: "btn mediumButton", onClick: this.setSpeed}, "MEDIUM")
+                    ),
+                    React.createElement("div", {className: "btnContainer"},
+                        React.createElement("button", {className: "btn fastButton", onClick: this.setSpeed}, "FAST")
+                    )
+                ),
+                React.createElement("div", {className: "SnakeWorld hide", ref: "SnakeWorld", style: this.getStyle()}, 
+                    this.getBlocks(), 
+                    React.createElement("div", {className: "win hide"}, "YOU WIN!"), 
+                    React.createElement("div", {className: "lose hide"}, "YOU LOSE!"), 
+                    React.createElement("div", {className: "score hide"})
+                ),
+                React.createElement("div", {className: "reloadButtonContainer hide", ref:"reloadButtonContainer"},
+                    React.createElement("img", {className: "reloadButton", style: this.getButtonStyle(), onClick: this.handleHomeClick}, null)
+                )
             )
         );
     },

@@ -11,10 +11,10 @@ define(function (require) {
     var _startup = function () {
 
         var props = {
-            fParentPath : '../../../',
+            fParentPath     : '../../../',
             pSnakeStartSize : 3,
-            pBoardStartSize : 15,
-            pSnakeSpeed : 200
+            pBoardStartSize : 18,
+            pBlockSize      : 16
         };
 
         React.render(new Snake(props), document.getElementById("app"), function () {

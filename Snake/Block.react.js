@@ -28,18 +28,6 @@ define(function (require, exports, module) {
             };
         },
 
-        toggleFoodOpacity: function(){
-
-            $(this.refs.foodBlock.getDOMNode()).toggleClass("opaque");
-            setTimeout(this.toggleFoodOpacity, 500);
-        },
-
-        componentDidMount: function(){
-
-            if(this.props.pIsFood)
-                setTimeout(this.toggleFoodOpacity, 500);
-        },
-
         render: function () {
             
             if(this.props.pIsFood)
