@@ -1,4 +1,4 @@
-body{background-color: lightseagreen;}
+body{background-color: lightseagreen; margin-left: 0px; margin-top: 10px;}
 
 .worldBorder {border-width: 2px; border-color: rgba(0, 50, 255, 0.5); border-radius: 2px;}
 .blockContainer {position: absolute;}
@@ -11,7 +11,7 @@ body{background-color: lightseagreen;}
 .stail {background-color: red;}
 .sbody {background-color: green;}
 
-.reloadButtonContainer{padding: 20px;}
+.reloadButtonContainer{padding: 20px 0 20px 0;}
 .reloadButton{border-radius: 50px;}
 
 .win {font-size: 25px; margin-left: 25%; font-family: monospace; color: black;padding-top: 40px;}
@@ -19,8 +19,8 @@ body{background-color: lightseagreen;}
 .score{font-size: 30px; margin-left: 20%; padding: 40px;}
 
 .startPage{margin-left: 27%; margin-top: 20%;}
-.startIconContainer{margin-left: 35px;}
-.btn{width: 150px; height: 40px;border-radius: 30px;background-color: limegreen;}
+.startIconContainer{margin-left: -14px;}
+.btn{width: 150px; height: 40px;border-radius: 30px;background-color: whitesmoke;border-color: black;}
 .btnContainer{padding-top: 10px;}
 
 .hide {display: none;}

@@ -13,7 +13,6 @@ define(function (require) {
         var props = {
             fParentPath     : '../../../',
             pSnakeStartSize : 3,
-            pBoardStartSize : 18,
             pBlockSize      : 16
         };
 

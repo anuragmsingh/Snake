@@ -18,16 +18,16 @@ define(function (require, exports, module) {
 
     var Snake = React.createClass({displayName: "Snake",
 
-    fillAllBlocks: function() {
+    fillAllBlocks: function(boardSize) {
         allBlocks = [];
-        for(var i=0; i<this.props.pBoardStartSize*this.props.pBoardStartSize; i++)
+        for(var i=0; i<boardSize*boardSize; i++)
             allBlocks.push(i);
     },
 
-    getRandomFoodPosition: function(alreadyUsed) {
+    getRandomFoodPosition: function(alreadyUsed, boardSize) {
 
-        if(allBlocks === undefined)
-            this.fillAllBlocks();
+        if(allBlocks === undefined || allBlocks.length !== boardSize*boardSize)
+            this.fillAllBlocks(boardSize);
 
         var remainingBlocks = allBlocks.diff(alreadyUsed);
 
@@ -36,16 +36,19 @@ define(function (require, exports, module) {
 
     getInitialState: function() {
         
-        var headLoc = (this.props.pBoardStartSize*(1+this.props.pBoardStartSize))/2,
+        var defaultBoardSize = 20;
+
+        var headLoc = (defaultBoardSize*(1+defaultBoardSize))/2,
             capturedBlocks = [];
 
         for(var i=0; i<this.props.pSnakeStartSize; i++)
             capturedBlocks.push(headLoc+i);
 
-        var randomFoodPosition = this.getRandomFoodPosition(capturedBlocks);
+        var randomFoodPosition = this.getRandomFoodPosition(capturedBlocks, defaultBoardSize);
 
         return {
             sSnakeSpeed     : 200,
+            sBoardStartSize : defaultBoardSize,
             sSnakeDirection : 2,
             sSnakeHeadPosition : headLoc,
             sSnakeCapturedBlocks : capturedBlocks,
@@ -55,7 +58,7 @@ define(function (require, exports, module) {
 
     SnakeHeadOnEdge: function(){
 
-        var sz  = this.props.pBoardStartSize,
+        var sz  = this.state.sBoardStartSize,
             pos = this.state.sSnakeHeadPosition,
             result = "";
 
@@ -106,25 +109,25 @@ define(function (require, exports, module) {
         {
             headPos = this.state.sSnakeHeadPosition+1;
             if(edgePosition === "right" || edgePosition === "topright" || edgePosition === "bottomright")
-                headPos -= this.props.pBoardStartSize;
+                headPos -= this.state.sBoardStartSize;
         }
         else if(this.state.sSnakeDirection == 1)
         {
-            headPos = this.state.sSnakeHeadPosition-this.props.pBoardStartSize;
+            headPos = this.state.sSnakeHeadPosition-this.state.sBoardStartSize;
             if(edgePosition === "top" || edgePosition === "topright" || edgePosition === "topleft")
-                headPos += this.props.pBoardStartSize*this.props.pBoardStartSize;
+                headPos += this.state.sBoardStartSize*this.state.sBoardStartSize;
         }
         else if(this.state.sSnakeDirection == 2)
         {
             headPos = this.state.sSnakeHeadPosition-1;
             if(edgePosition === "left" || edgePosition === "topleft" || edgePosition === "bottomleft")
-                headPos += this.props.pBoardStartSize;
+                headPos += this.state.sBoardStartSize;
         }
         else if(this.state.sSnakeDirection == 3)
         {   
-            headPos = this.state.sSnakeHeadPosition+this.props.pBoardStartSize;
+            headPos = this.state.sSnakeHeadPosition+this.state.sBoardStartSize;
             if(edgePosition === "bottom" || edgePosition === "bottomright" || edgePosition === "bottomleft")
-                headPos -= this.props.pBoardStartSize*this.props.pBoardStartSize;
+                headPos -= this.state.sBoardStartSize*this.state.sBoardStartSize;
         }
 
         var capturedBlocks = this.state.sSnakeCapturedBlocks;
@@ -133,12 +136,12 @@ define(function (require, exports, module) {
         {
             $(this.refs.blockContainer.getDOMNode()).addClass("hide");
                    
-            if(capturedBlocks.length < this.props.pBoardStartSize*this.props.pBoardStartSize)
+            if(capturedBlocks.length < this.state.sBoardStartSize*this.state.sBoardStartSize)
                 $(this.refs.SnakeWorld.getDOMNode()).find('.lose').removeClass("hide");
             else
                 $(this.refs.SnakeWorld.getDOMNode()).find('.win').removeClass("hide");
             
-            $(this.refs.SnakeWorld.getDOMNode()).find('.score').html(capturedBlocks.length+"/"+this.props.pBoardStartSize*this.props.pBoardStartSize);
+            $(this.refs.SnakeWorld.getDOMNode()).find('.score').html(capturedBlocks.length+"/"+this.state.sBoardStartSize*this.state.sBoardStartSize);
             $(this.refs.SnakeWorld.getDOMNode()).find('.score').removeClass("hide");
             $(this.refs.reloadButtonContainer.getDOMNode()).removeClass("hide");
             return;
@@ -148,7 +151,7 @@ define(function (require, exports, module) {
     
         if(headPos == this.state.sFoodPosition)
         {
-            this.setState({ sFoodPosition: this.getRandomFoodPosition(capturedBlocks),
+            this.setState({ sFoodPosition: this.getRandomFoodPosition(capturedBlocks, this.state.sBoardStartSize),
                             sSnakeHeadPosition: headPos, 
                             sSnakeCapturedBlocks: capturedBlocks});
         }    
@@ -227,7 +230,7 @@ define(function (require, exports, module) {
 
     getBlock: function(xCord, yCord) {
 
-        var blockKey = this.props.pBoardStartSize * xCord + yCord,
+        var blockKey = this.state.sBoardStartSize * xCord + yCord,
             snakeLen = this.state.sSnakeCapturedBlocks.length;
 
         return (React.createElement(Block, {key: blockKey, 
@@ -246,8 +249,8 @@ define(function (require, exports, module) {
 
         var blocks = [];
 
-        for(var i=0; i<this.props.pBoardStartSize; i++)
-            for(var j=0; j<this.props.pBoardStartSize; j++)
+        for(var i=0; i<this.state.sBoardStartSize; i++)
+            for(var j=0; j<this.state.sBoardStartSize; j++)
                 blocks.push(this.getBlock(i, j));
 
         return (React.createElement("div", {className: "blockContainer", ref: "blockContainer"}, blocks));
@@ -255,48 +258,39 @@ define(function (require, exports, module) {
 
     getStyle: function() {
         
-        var size        = this.props.pBoardStartSize*this.props.pBlockSize,
-            leftOffset  = ($(window).width()-size)/2;
+        var size= this.state.sBoardStartSize*this.props.pBlockSize;
 
         return {
             'borderStyle'   : 'solid',
-            'borderColor'   : 'magenta',
-            'borderRadius'  : '1px',
-            'width'         : size.toString() + "px",
-            'height'        : size.toString() + "px",
-            'marginLeft'    : leftOffset,
-            'position'      : 'relative'
+            'borderColor'   : 'blueviolet',
+            'borderWidth'   : 'thin',
+            'width'         : size,
+            'height'        : size,
+            'marginLeft'    : ($(window).width()-size-2)/2
         };
     },
 
     getButtonStyle: function() {
 
         var buttonSize  = 50,
-            backImgUrl  = 'res/home.png';
+            del;
 
         return {
             'position'      : 'relative',
             'width'         : buttonSize,
             'height'        : buttonSize,
-            'marginLeft'    : ($(window).width()-buttonSize)/2,
-            "backgroundImage": "url("+backImgUrl+")",
-            "backgroundSize": "100% 100%",
-            "backgroundRepeat": "no-repeat"
+            'marginLeft'    : ($(window).width()-buttonSize)/2
         };
     },
 
     getStartIconStyle: function() {
 
-        var iconSize = 80,
-            imgUrl   = 'res/icon/android/iconSnake.png';
+        var iconSize = 160;
 
         return {
             'position'      : 'relative',
             'width'         : iconSize,
-            'height'        : iconSize,
-            "backgroundImage": "url("+imgUrl+")",
-            "backgroundSize": "100% 100%",
-            "backgroundRepeat": "no-repeat"
+            'height'        : iconSize
         };
     },
 
@@ -309,6 +303,9 @@ define(function (require, exports, module) {
     },
 
     handleTouchEnd: function(e){
+
+        if($(this.refs.SnakeWorld.getDOMNode()).hasClass("hide"))
+            return;
         
         var touch = e.changedTouches[0];
 
@@ -367,7 +364,7 @@ define(function (require, exports, module) {
             React.createElement("div", null,
                 React.createElement("div", {className: "startPage", ref:"startPage"},
                     React.createElement("div", {className: "startIconContainer"},
-                        React.createElement("img", {className: "startIcon", style: this.getStartIconStyle()}, null)
+                        React.createElement("img", {className: "startIcon", style: this.getStartIconStyle(), src: 'res/icon/android/iconSnake.png'}, null)
                     ),
                     React.createElement("div", {className: "btnContainer"},
                         React.createElement("button", {className: "btn slowButton", onClick: this.setSpeed}, "SLOW")
@@ -381,12 +378,12 @@ define(function (require, exports, module) {
                 ),
                 React.createElement("div", {className: "SnakeWorld hide", ref: "SnakeWorld", style: this.getStyle()}, 
                     this.getBlocks(), 
-                    React.createElement("div", {className: "win hide"}, "YOU WIN!"), 
-                    React.createElement("div", {className: "lose hide"}, "YOU LOSE!"), 
+                    React.createElement("div", {className: "win hide"}, "You Win!"), 
+                    React.createElement("div", {className: "lose hide"}, "Longer !!!"), 
                     React.createElement("div", {className: "score hide"})
                 ),
                 React.createElement("div", {className: "reloadButtonContainer hide", ref:"reloadButtonContainer"},
-                    React.createElement("img", {className: "reloadButton", style: this.getButtonStyle(), onClick: this.handleHomeClick}, null)
+                    React.createElement("img", {className: "reloadButton", style: this.getButtonStyle(), src: 'res/home.png', onClick: this.handleHomeClick}, null)
                 )
             )
         );
