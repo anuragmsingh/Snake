@@ -294,6 +294,17 @@ define(function (require, exports, module) {
         };
     },
 
+    getStartMenuStyle: function() {
+
+        var size = 160;
+
+        return {
+            'marginTop'  : '12%',
+            'marginLeft' : ($(window).width()-size)/2
+        }
+
+    },
+
     handleTouchStart: function(e){
         
         var touch = e.changedTouches[0];
@@ -362,7 +373,7 @@ define(function (require, exports, module) {
     render: function() {
         return (
             React.createElement("div", null,
-                React.createElement("div", {className: "startPage", ref:"startPage"},
+                React.createElement("div", {className: "startPage", ref:"startPage", style: this.getStartMenuStyle()},
                     React.createElement("div", {className: "startIconContainer"},
                         React.createElement("img", {className: "startIcon", style: this.getStartIconStyle(), src: 'res/icon/android/iconSnake.png'}, null)
                     ),

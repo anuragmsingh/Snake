@@ -18,9 +18,8 @@ body{background-color: lightseagreen; margin-left: 0px; margin-top: 10px;}
 .lose{font-size: 25px; margin-left: 25%; font-family: monospace; color: black;padding-top: 40px;}
 .score{font-size: 30px; margin-left: 20%; padding: 40px;}
 
-.startPage{margin-left: 27%; margin-top: 20%;}
 .startIconContainer{margin-left: -14px;}
-.btn{width: 150px; height: 40px;border-radius: 30px;background-color: whitesmoke;border-color: black;}
+.btn{width: 160px; height: 40px;border-radius: 30px;background-color: whitesmoke;border-color: black;}
 .btnContainer{padding-top: 10px;}
 
 .hide {display: none;}
